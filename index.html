@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Integrated Lasso + Ray-Pinch Interaction</title>
+  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin:0; height:100%; overflow:hidden; font-family:Arial, Helvetica, sans-serif; background:#dfe5e8; color:#20262c; }
+    #panel { position:fixed; z-index:20; top:12px; left:12px; width:250px; max-width:calc(100vw - 24px); padding:11px; color:#20262c; background:rgba(250,251,252,.95); border:1px solid #c8cfd5; border-radius:3px; box-shadow:0 1px 4px rgba(24,34,44,.10); max-height:calc(100vh - 24px); overflow:auto; }
+    .panel-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+    #panel h1 { font-size:14px; line-height:1.25; font-weight:600; margin:0 0 3px; }
+    #panel .sub { font-size:10px; color:#66717b; }
+    #panel p { font-size:11px; line-height:1.4; margin:7px 0; color:#47515b; }
+    .group { margin-top:8px; padding-top:7px; border-top:1px solid #dce1e5; }
+    .label { font-size:9px; color:#65717b; text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px; font-weight:600; }
+    .buttons { display:flex; flex-wrap:wrap; gap:4px; }
+    button { border:1px solid #b9c2ca; border-radius:2px; padding:6px 7px; background:#f4f6f7; color:#28313a; font:inherit; font-size:10px; cursor:pointer; }
+    button:hover { background:#e8edf0; }
+    #status { font-size:11px; line-height:1.35; margin-top:8px; color:#3e6552; min-height:28px; }
+    #stats { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; margin-top:6px; }
+    .stat { background:#f0f3f5; border:1px solid #e0e5e8; padding:5px; border-radius:2px; }
+    .stat b { display:block; font-size:13px; font-weight:600; }
+    .stat span { color:#68737c; font-size:9px; }
+    #hint { font-size:9px; color:#69747e; line-height:1.35; margin-top:6px; }
+    #showPanel { position:fixed; z-index:25; top:12px; left:12px; padding:7px 10px; background:rgba(250,251,252,.97); border:1px solid #b9c2ca; border-radius:3px; }
+    .hidden { display:none !important; }
+    #startOverlay { position:fixed; z-index:30; inset:0; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(28,35,41,.45); }
+    #startCard { max-width:360px; width:100%; background:#fafbfc; border:1px solid #c5cdd3; border-radius:3px; padding:18px; color:#20262c; box-shadow:0 4px 16px rgba(0,0,0,.12); }
+    #startCard h2 { margin:0 0 7px; font-size:17px; font-weight:600; }
+    #startCard p { color:#4d5862; font-size:12px; line-height:1.45; }
+    #startCard button { width:100%; margin-top:7px; padding:9px; font-size:12px; background:#e4ebef; }
+  </style>
+</head>
+<body>
+  <div id="panel">
+    <div class="panel-head">
+      <div><h1>Integrated Object Arrangement</h1><div class="sub">3D UI · WebXR prototype</div></div>
+      <button id="collapsePanel">Hide</button>
+    </div>
+    <div id="panelContent">
+      <p id="taskInstruction">Use either interaction at any time: lasso several cubes to move them together, or point and pinch to move one cube and release it on its matching target.</p>
+      <div class="group">
+        <div class="label">Task progress</div>
+        <div id="progressText">Both interactions available</div>
+        <div id="stats">
+          <div class="stat"><b id="timeStat">0.0s</b><span>Time</span></div>
+          <div class="stat"><b id="moveStat">0</b><span>Moves</span></div>
+          <div class="stat"><b id="placedStat">0/4</b><span>Placed</span></div>
+        </div>
+      </div>
+      <div class="group">
+        <div class="label">Task controls</div>
+        <div class="buttons"><button id="startTask">Start / restart</button><button id="undo">Undo</button><button id="reset">Reset</button></div>
+      </div>
+      <div id="status">Both gestures are available throughout the task. No stage switching.</div>
+      <div id="hint">Desktop: drag a lasso around the cubes, then click the floor to move the group. Select one cube and click its matching target to place it precisely. Quest gesture support is described in the instructions.</div>
+      <div class="group"><button id="downloadCSV">Export task log (CSV)</button></div>
+    </div>
+  </div>
+  <button id="showPanel" class="hidden">Show controls</button>
+
+  <div id="startOverlay">
+    <div id="startCard">
+      <h2>Coarse-to-fine object arrangement</h2>
+      <p>Both interaction techniques are available from the beginning. Lasso-select any number of cubes and move them as a group, or use hand ray + pinch to move one cube and release it on the matching color target.</p>
+      <p>Designed for Meta Quest 3S browser WebXR with hand tracking enabled. Actual behavior depends on browser/device support; controller ray remains available as a fallback.</p>
+      <button id="begin">Start demo</button>
+    </div>
+  </div>
+
+  <a-scene background="color:#dfe5e8" renderer="colorManagement:true; physicallyCorrectLights:true" vr-mode-ui="enabled:true" webxr="optionalFeatures:local-floor, bounded-floor, hand-tracking">
+    <a-entity light="type:ambient; intensity:0.85"></a-entity>
+    <a-entity light="type:directional; intensity:1.1" position="-3 7 4"></a-entity>
+    <a-plane id="floor" rotation="-90 0 0" width="22" height="22" color="#cbd3d8" material="roughness:0.95" position="0 0 0"></a-plane>
+    <a-grid position="0 0.008 0" width="22" height="22" cell-size="0.5" color="#aeb9c0"></a-grid>
+
+    <!-- Group staging area, physically between start and final board -->
+    <a-box position="0 0.035 -2.6" width="3.8" height="0.06" depth="2.4" color="#d5dadd" material="roughness:0.9"></a-box>
+    <a-box position="0 0.071 -2.6" width="3.65" height="0.012" depth="2.25" color="#71858b"></a-box>
+    <a-text value="GROUP AREA" position="0 0.09 -3.55" rotation="-90 0 0" align="center" color="#34464d" width="3"></a-text>
+
+    <!-- Final target board and four clearly color-coded target slots -->
+    <a-box position="0 0.08 -5.25" width="4.0" height="0.16" depth="1.8" color="#edf0f1" material="roughness:0.85"></a-box>
+    <a-text value="FINAL TARGETS" position="0 0.18 -5.9" rotation="-90 0 0" align="center" color="#34464d" width="3.8"></a-text>
+    <a-cylinder class="target-slot" data-target="red" position="-1.35 0.18 -4.9" radius="0.36" height="0.035" color="#d86b5d"></a-cylinder>
+    <a-cylinder class="target-slot" data-target="blue" position="-0.45 0.18 -4.9" radius="0.36" height="0.035" color="#5d88c9"></a-cylinder>
+    <a-cylinder class="target-slot" data-target="yellow" position="0.45 0.18 -4.9" radius="0.36" height="0.035" color="#d5b84f"></a-cylinder>
+    <a-cylinder class="target-slot" data-target="green" position="1.35 0.18 -4.9" radius="0.36" height="0.035" color="#58a982"></a-cylinder>
+    <a-text value="RED" position="-1.35 0.22 -4.9" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
+    <a-text value="BLUE" position="-0.45 0.22 -4.9" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
+    <a-text value="YELLOW" position="0.45 0.22 -4.9" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
+    <a-text value="GREEN" position="1.35 0.22 -4.9" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
+
+    <!-- Start area is deliberately far away from the target board -->
+    <a-box position="0 0.035 1.2" width="4.6" height="0.06" depth="2.2" color="#d5dadd" material="roughness:0.9"></a-box>
+    <a-text value="START AREA" position="0 0.09 0.35" rotation="-90 0 0" align="center" color="#34464d" width="3"></a-text>
+    <a-box class="cube" data-cube="red" data-color="red" position="-1.45 0.55 0.85" width="0.55" height="0.55" depth="0.55" color="#d86b5d"></a-box>
+    <a-box class="cube" data-cube="blue" data-color="blue" position="-0.5 0.55 1.45" width="0.55" height="0.55" depth="0.55" color="#5d88c9"></a-box>
+    <a-box class="cube" data-cube="yellow" data-color="yellow" position="0.5 0.55 0.85" width="0.55" height="0.55" depth="0.55" color="#d5b84f"></a-box>
+    <a-box class="cube" data-cube="green" data-color="green" position="1.45 0.55 1.45" width="0.55" height="0.55" depth="0.55" color="#58a982"></a-box>
+    <a-text value="Move group forward, then align each color" position="0 2.15 -2.3" align="center" color="#36414a" width="5"></a-text>
+
+    <a-entity id="rig">
+      <a-camera id="camera" position="0 1.6 6.8" wasd-controls-enabled="true">
+        <a-cursor id="cursor" fuse="false" raycaster="objects:.cube, .target-slot, #floor; far:24" material="color:#ffffff; shader:flat" scale="0.65 0.65 0.65"></a-cursor>
+      </a-camera>
+      <a-entity id="rightController" laser-controls="hand:right" raycaster="objects:.cube, .target-slot, #floor; far:24" line="color:#52636f; opacity:0.85"></a-entity>
+      <a-entity id="leftController" laser-controls="hand:left" raycaster="objects:.cube, .target-slot, #floor; far:24" line="color:#52636f; opacity:0.55"></a-entity>
+      <!-- Hand tracking entities: pinch events are handled when WebXR supplies tracked hands -->
+      <a-entity id="rightHand" hand-tracking-controls="hand:right; modelColor:#e5b99b; modelStyle:mesh"></a-entity>
+      <a-entity id="leftHand" hand-tracking-controls="hand:left; modelColor:#e5b99b; modelStyle:mesh"></a-entity>
+    </a-entity>
+  </a-scene>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const scene=$('a-scene'), camera=$('#camera'), floor=$('#floor'), cubes=$$('.cube'), selected=new Set(), history=[];
+  const initial=new Map(cubes.map(c=>{const p=c.getAttribute('position');return[c,{x:p.x,y:p.y,z:p.z}]}));
+  const targets={red:{x:-1.35,y:0.48,z:-4.9},blue:{x:-0.45,y:0.48,z:-4.9},yellow:{x:0.45,y:0.48,z:-4.9},green:{x:1.35,y:0.48,z:-4.9}};
+  let taskStarted=false, taskStart=0, timer=null, moves=0, lassoStart=null, lassoBox=null, groupGrab=null, handGrab=null, xrLoopStarted=false;
+  const logs=[['timestamp','event','stage','technique','cubes','x','y','z','target_error','elapsed_seconds']];
+  const placed=new Set();
+  const elapsed=()=>taskStarted?(performance.now()-taskStart)/1000:0;
+  function log(event, items=[], pos=null, error=''){
+    const p=pos||(items[0]?items[0].object3D.position:{x:'',y:'',z:''});
+    logs.push([new Date().toISOString(),event,'integrated',event.includes('lasso')?'lasso':'ray-pinch',items.map(c=>c.dataset.color).join(';'),p.x??'',p.y??'',p.z??'',error,elapsed().toFixed(3)]);
+  }
+  function visual(c,on){c.setAttribute('material','emissive',on?'#292929':'#000000');c.setAttribute('scale',on?'1.08 1.08 1.08':'1 1 1');}
+  function clear(){selected.forEach(c=>visual(c,false));selected.clear();}
+  function status(t){$('#status').textContent=t;}
+  function updateUI(){
+    $('#progressText').textContent='Both interactions available';
+    $('#taskInstruction').textContent='Lasso multiple cubes to move them together, or use hand ray + pinch to move one cube and release it on its matching target.';
+    $('#placedStat').textContent=`${placed.size}/4`;
+  }
+  function select(c, additive=false){
+    if(!additive)clear();
+    if(selected.has(c)){selected.delete(c);visual(c,false)}else{selected.add(c);visual(c,true)}
+    status(selected.size?`Selected: ${[...selected].map(c=>c.dataset.color).join(', ')}.`:'No cubes selected.');
+    log('select',[...selected]);
+  }
+  function moveGroup(point){
+    if(!selected.size){status('Select the cubes first.');return;}
+    const items=[...selected], center=items.reduce((a,c)=>({x:a.x+c.object3D.position.x/items.length,z:a.z+c.object3D.position.z/items.length}),{x:0,z:0});
+    let dx=point.x-center.x,dz=point.z-center.z;
+    // Keep the whole group inside the intended coarse area, while preserving offsets.
+    dx=Math.max(-2.4,Math.min(2.4,dx)); dz=Math.max(-4.3,Math.min(-1.0,dz));
+    items.forEach(c=>{const p=c.object3D.position;history.push({c,pos:{x:p.x,y:p.y,z:p.z}});const x=p.x+dx,z=p.z+dz;c.setAttribute('position',{x,y:0.55,z});visual(c,false);log('group_move',[c],{x,y:0.55,z});});
+    clear();moves++;$('#moveStat').textContent=moves;updateUI();
+    status('Group moved. Both lasso and ray + pinch remain available.');
+  }
+  function placeOne(c,color){
+    if(c.dataset.color!==color){status(`Wrong target. Move the ${c.dataset.color} cube to the ${c.dataset.color} target.`);return;}
+    const p=c.object3D.position,t=targets[color];history.push({c,pos:{x:p.x,y:p.y,z:p.z}});
+    c.setAttribute('position',t);visual(c,false);selected.delete(c);placed.add(color);moves++;
+    $('#moveStat').textContent=moves;$('#placedStat').textContent=`${placed.size}/4`;
+    const err=Math.sqrt((p.x-t.x)**2+(p.z-t.z)**2);log('precise_place',[c],t,err.toFixed(3));
+    status(placed.size===4?'All cubes placed. Task complete!':`Correct: ${color} cube placed. Continue with the remaining cubes.`);
+  }
+  cubes.forEach(c=>{
+    c.classList.add('clickable');
+    c.addEventListener('click',e=>{e.stopPropagation();select(c,e.shiftKey);});
+    c.addEventListener('mouseenter',()=>{if(!selected.has(c))c.setAttribute('scale','1.04 1.04 1.04')});
+    c.addEventListener('mouseleave',()=>{if(!selected.has(c))c.setAttribute('scale','1 1 1')});
+  });
+  floor.addEventListener('click',e=>{const p=e.detail&&e.detail.intersection&&e.detail.intersection.point;if(p&&selected.size>1)moveGroup(p);});
+  $$('.target-slot').forEach(slot=>{
+    slot.classList.add('clickable');
+    slot.addEventListener('click',e=>{e.stopPropagation();if(!selected.size){status('Select a cube first, or grab it with pinch.');return;}const c=[...selected][0];if(selected.size>1){status('Select just one cube to place on a target.');return;}placeOne(c,slot.dataset.target);});
+  });
+  ['rightController','leftController'].forEach(id=>{
+    $('#'+id).addEventListener('click',e=>{
+      const el=e.detail&&e.detail.intersectedEl;if(!el)return;
+      if(el.classList.contains('cube')){select(el,false);}
+      else if(el===floor&&selected.size>1){const p=e.detail&&e.detail.intersection&&e.detail.intersection.point;if(p)moveGroup(p);}
+      else if(el.classList.contains('target-slot')&&selected.size===1)placeOne([...selected][0],el.dataset.target);
+    });
+  });
+  // Desktop lasso gesture: hold mouse and drag a rectangle around the four cubes.
+  scene.addEventListener('loaded',()=>{
+    const canvas=scene.canvas;if(!canvas)return;
+    canvas.addEventListener('pointerdown',e=>{
+      if(scene.is('vr-mode')||e.button!==0)return;
+      if(e.clientX<270&&e.clientY<650)return;
+      lassoStart={x:e.clientX,y:e.clientY};lassoBox=document.createElement('div');
+      Object.assign(lassoBox.style,{position:'fixed',zIndex:'15',border:'1px solid #4d7e80',background:'rgba(77,126,128,.12)',pointerEvents:'none',left:e.clientX+'px',top:e.clientY+'px',width:'0',height:'0'});
+      document.body.appendChild(lassoBox);canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove',e=>{if(!lassoStart||!lassoBox)return;lassoBox.style.left=Math.min(lassoStart.x,e.clientX)+'px';lassoBox.style.top=Math.min(lassoStart.y,e.clientY)+'px';lassoBox.style.width=Math.abs(e.clientX-lassoStart.x)+'px';lassoBox.style.height=Math.abs(e.clientY-lassoStart.y)+'px';});
+    canvas.addEventListener('pointerup',e=>{
+      if(!lassoStart)return;const s=lassoStart;lassoStart=null;const en={x:e.clientX,y:e.clientY};
+      const left=Math.min(s.x,en.x),right=Math.max(s.x,en.x),top=Math.min(s.y,en.y),bottom=Math.max(s.y,en.y);
+      if(lassoBox){lassoBox.remove();lassoBox=null;}if(Math.abs(en.x-s.x)<8||Math.abs(en.y-s.y)<8)return;
+      const rect=canvas.getBoundingClientRect(),cam=camera.getObject3D('camera');if(!cam)return;clear();
+      cubes.forEach(c=>{const v=c.object3D.getWorldPosition(new THREE.Vector3()).project(cam);const sx=rect.left+(v.x+1)*.5*rect.width,sy=rect.top+(1-v.y)*.5*rect.height;if(v.z>-1&&sx>=left&&sx<=right&&sy>=top&&sy<=bottom){selected.add(c);visual(c,true);}});
+      status(selected.size?`Lasso selected ${selected.size} cubes. Drag the selection to move the group, or continue with ray + pinch.`:'No cubes enclosed. Try again.');log('lasso_select',[...selected]);
+    });
+  });
+  // Native WebXR hand input: use the hand input source's targetRaySpace for pointing,
+  // WebXR selectstart/selectend for pinch/grab, and XRHand joints for lasso drawing.
+  // This avoids relying on a nonexistent raycaster attached to hand-tracking-controls.
+  const xrState = { points: [], drawing: false, lassoStart: null, lassoOverlay: null, lastTip: null, lastFrame: null, selectedAtLasso: [], groupOrigin: null, currentFrame: null };
+  const jointNames = ['index-finger-tip', 'thumb-tip'];
+  function isHandSource(source){ return !!(source && source.hand && source.targetRaySpace); }
+  function getRayHit(frame, source, referenceSpace){
+    const pose=frame.getPose(source.targetRaySpace, referenceSpace); if(!pose) return null;
+    const m=pose.transform.matrix, origin=new THREE.Vector3(m[12],m[13],m[14]);
+    const rot=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().fromArray(m));
+    const direction=new THREE.Vector3(0,0,-1).applyQuaternion(rot).normalize();
+    const raycaster=new THREE.Raycaster(origin,direction,0,20);
+    const objs=[...cubes,...$$('.target-slot'),floor].map(el=>el.object3D);
+    const hits=raycaster.intersectObjects(objs,true);
+    for(const h of hits){let node=h.object;while(node&&!node.el)node=node.parent;const el=node&&node.el;if(el&&(el.classList.contains('cube')||el.classList.contains('target-slot')||el===floor))return {el,point:h.point,origin,direction};}
+    return {el:null,point:null,origin,direction};
+  }
+  function onHandSelectStart(frame, source, ref){
+    const hit=getRayHit(frame,source,ref); if(!hit||!hit.el)return;
+    if(hit.el.classList.contains('cube')){
+      const c=hit.el; clear(); selected.add(c); visual(c,true);
+      handGrab={source,cube:c,offset:c.object3D.position.clone().sub(hit.point),ref,group:false};
+      status(`Pinch grabbed ${c.dataset.color} cube. Move your hand; release to drop.`);log('pinch_grab',[c]);
+    } else if(hit.el.classList.contains('target-slot')){
+      if(selected.size===1) placeOne([...selected][0],hit.el.dataset.target);
+    } else if(hit.el===floor && selected.size>1){
+      groupGrab={source,ref,items:[...selected],lastPoint:hit.point.clone()};
+    }
+  }
+  function onHandSelectEnd(source){
+    if(handGrab&&handGrab.source===source){
+      const c=handGrab.cube; const p=c.object3D.position;
+      // If released close to the matching target, snap to the exact target location.
+      const t=targets[c.dataset.color], dist=Math.hypot(p.x-t.x,p.z-t.z);
+      if(dist<0.65) placeOne(c,c.dataset.color); else { visual(c,false); selected.delete(c); status(`${c.dataset.color} cube released. Use lasso or pinch again whenever needed.`); log('pinch_release',[c]); }
+      handGrab=null;
+    }
+    if(groupGrab&&groupGrab.source===source){groupGrab=null;clear();status('Group released. Both interaction techniques remain available.');}
+  }
+  function projectPoint(point, cam, rect){const v=point.clone().project(cam);return {x:rect.left+(v.x+1)*.5*rect.width,y:rect.top+(1-v.y)*.5*rect.height,z:v.z};}
+  function pointInPolygon(pt, poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a.y>pt.y)!==(b.y>pt.y))&&(pt.x<(b.x-a.x)*(pt.y-a.y)/(b.y-a.y+1e-8)+a.x))inside=!inside;}return inside;}
+  function closeLasso(points){
+    if(points.length<12)return;
+    const first=points[0],last=points[points.length-1];if(Math.hypot(first.x-last.x,first.y-last.y)>55)return;
+    const poly=points.map(p=>({x:p.x,y:p.y}));const rect=scene.canvas.getBoundingClientRect(),cam=camera.getObject3D('camera');if(!cam)return;
+    clear();cubes.forEach(c=>{const w=c.object3D.getWorldPosition(new THREE.Vector3()),q=projectPoint(w,cam,rect);if(q.z>-1&&pointInPolygon(q,poly)){selected.add(c);visual(c,true);}});
+    status(selected.size?`Lasso selected ${selected.size} cube(s). Pinch one cube or use a hand movement to move the group.`:'Lasso closed but no cube centers were inside. Try again.');log('xr_lasso_select',[...selected]);
+  }
+  function startXRLoop(session){
+    if(xrLoopStarted)return;xrLoopStarted=true;
+    const tick=(time,frame)=>{
+      if(!session||!session.inputSources){xrLoopStarted=false;return;}
+      const ref=scene.renderer.xr.getReferenceSpace();
+      if(frame&&ref){
+        xrState.currentFrame=frame;
+        for(const source of session.inputSources){if(!isHandSource(source))continue;
+          const tip=frame.getJointPose(source.hand.get('index-finger-tip'),ref);const thumb=frame.getJointPose(source.hand.get('thumb-tip'),ref);
+          if(tip){const pos=new THREE.Vector3(tip.transform.position.x,tip.transform.position.y,tip.transform.position.z);
+            if(handGrab&&handGrab.source===source){const p=pos.clone().add(handGrab.offset);handGrab.cube.object3D.position.copy(p);handGrab.cube.object3D.position.y=Math.max(.25,p.y);}
+            if(groupGrab&&groupGrab.source===source&&groupGrab.lastPoint){const delta=pos.clone().sub(groupGrab.lastPoint);groupGrab.items.forEach(c=>c.object3D.position.add(delta));groupGrab.lastPoint.copy(pos);}
+            // Index-finger tip traces a projected closed loop when no object is being pinched.
+            const pinchDist=thumb?Math.hypot(tip.transform.position.x-thumb.transform.position.x,tip.transform.position.y-thumb.transform.position.y,tip.transform.position.z-thumb.transform.position.z):1;
+            if(!handGrab&&!groupGrab&&pinchDist>.045){
+              const rect=scene.canvas.getBoundingClientRect(),cam=camera.getObject3D('camera'),q=projectPoint(pos,cam,rect);
+              if(!xrState.drawing){xrState.drawing=true;xrState.points=[];}
+              if(!xrState.lastScreen||Math.hypot(q.x-xrState.lastScreen.x,q.y-xrState.lastScreen.y)>5)xrState.points.push(q);
+              xrState.lastScreen=q;
+            } else if(xrState.drawing){closeLasso(xrState.points);xrState.drawing=false;xrState.points=[];xrState.lastScreen=null;}
+          }
+        }
+      }
+      session.requestAnimationFrame(tick);
+    };
+    session.requestAnimationFrame(tick);
+  }
+  scene.addEventListener('enter-vr',()=>{const session=scene.renderer&&scene.renderer.xr&&scene.renderer.xr.getSession();if(!session)return;startXRLoop(session);
+    session.addEventListener('selectstart',e=>{if(isHandSource(e.inputSource)){const ref=scene.renderer.xr.getReferenceSpace();const frame=xrState.currentFrame;if(frame)onHandSelectStart(frame,e.inputSource,ref);}});
+    session.addEventListener('selectend',e=>{if(isHandSource(e.inputSource))onHandSelectEnd(e.inputSource);});
+  });
+  // Desktop: lasso selection is always available; controller ray remains the VR fallback.
+  let desktopDrag=null;
+  scene.addEventListener('loaded',()=>{
+    const canvas=scene.canvas;if(!canvas)return;
+    canvas.addEventListener('pointerdown',e=>{
+      if(scene.is('vr-mode')||e.button!==0)return;
+      if(e.clientX<270&&e.clientY<650)return;
+      lassoStart={x:e.clientX,y:e.clientY};lassoBox=document.createElement('div');
+      Object.assign(lassoBox.style,{position:'fixed',zIndex:'15',border:'1px solid #4d7e80',background:'rgba(77,126,128,.12)',pointerEvents:'none',left:e.clientX+'px',top:e.clientY+'px',width:'0',height:'0'});document.body.appendChild(lassoBox);canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove',e=>{if(!lassoStart||!lassoBox)return;lassoBox.style.left=Math.min(lassoStart.x,e.clientX)+'px';lassoBox.style.top=Math.min(lassoStart.y,e.clientY)+'px';lassoBox.style.width=Math.abs(e.clientX-lassoStart.x)+'px';lassoBox.style.height=Math.abs(e.clientY-lassoStart.y)+'px';});
+    canvas.addEventListener('pointerup',e=>{if(!lassoStart)return;const s=lassoStart;lassoStart=null;const en={x:e.clientX,y:e.clientY};const left=Math.min(s.x,en.x),right=Math.max(s.x,en.x),top=Math.min(s.y,en.y),bottom=Math.max(s.y,en.y);if(lassoBox){lassoBox.remove();lassoBox=null;}if(Math.abs(en.x-s.x)<8||Math.abs(en.y-s.y)<8)return;const rect=canvas.getBoundingClientRect(),cam=camera.getObject3D('camera');if(!cam)return;clear();cubes.forEach(c=>{const v=c.object3D.getWorldPosition(new THREE.Vector3()).project(cam);const sx=rect.left+(v.x+1)*.5*rect.width,sy=rect.top+(1-v.y)*.5*rect.height;if(v.z>-1&&sx>=left&&sx<=right&&sy>=top&&sy<=bottom){selected.add(c);visual(c,true);}});status(selected.size?`Lasso selected ${selected.size} cube(s). Both interactions remain available.`:'No cubes enclosed. Try again.');log('lasso_select',[...selected]);});
+  });
+  $('#startTask').addEventListener('click',()=>{taskStarted=true;taskStart=performance.now();moves=0;$('#moveStat').textContent='0';if(timer)clearInterval(timer);timer=setInterval(()=>$('#timeStat').textContent=elapsed().toFixed(1)+'s',100);status('Task started. Use lasso or ray + pinch in any order; no stage switching.');log('task_start',[]);});
+  $('#undo').addEventListener('click',()=>{const h=history.pop();if(!h){status('Nothing to undo.');return;}h.c.setAttribute('position',h.pos);placed.delete(h.c.dataset.color);$('#placedStat').textContent=`${placed.size}/4`;visual(h.c,false);status(`Restored ${h.c.dataset.color} cube.`);log('undo',[h.c],h.pos);});
+  $('#reset').addEventListener('click',()=>{cubes.forEach(c=>{c.setAttribute('position',initial.get(c));visual(c,false);});clear();history.length=0;placed.clear();moves=0;$('#moveStat').textContent='0';$('#placedStat').textContent='0/4';$('#timeStat').textContent='0.0s';taskStarted=false;if(timer)clearInterval(timer);timer=null;updateUI();status('Reset complete. Start the task.');log('reset',[]);});
+  $('#downloadCSV').addEventListener('click',()=>{const csv=logs.map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='coarse-to-fine-task-log.csv';a.click();URL.revokeObjectURL(url);});
+  $('#begin').addEventListener('click',()=>$('#startOverlay').classList.add('hidden'));
+  $('#collapsePanel').addEventListener('click',()=>{$('#panel').classList.add('hidden');$('#showPanel').classList.remove('hidden');});
+  $('#showPanel').addEventListener('click',()=>{$('#panel').classList.remove('hidden');$('#showPanel').classList.add('hidden');});
+  updateUI();
+})();
+</script>
+</body>
+</html>
