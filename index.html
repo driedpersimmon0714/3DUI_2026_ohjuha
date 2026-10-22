@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Integrated Lasso + Ray-Pinch Interaction</title>
+  <title>Integrated Lasso + Ray-Pinch Interaction v10</title>
   <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -55,7 +55,7 @@
         <div class="buttons"><button id="startTask">Start / restart</button><button id="undo">Undo</button><button id="reset">Reset</button></div>
       </div>
       <div id="status">Both gestures are available throughout the task. No stage switching.</div>
-      <div id="hint">Desktop: drag a lasso around the cubes, then click the floor to move the group. Select one cube and click its matching target to place it precisely. Quest gesture support is described in the instructions.</div>
+      <div id="hint">Desktop: drag a lasso around the cubes, then click the floor to move the group. Select one cube and click its matching target to place it precisely. Quest: either hand — extend index finger with other fingers curled, draw a closed loop, then curl index to finish. RIGHT hand — point at cube, pinch thumb + index to grab, move, release to drop.</div>
       <div class="group"><button id="downloadCSV">Export task log (CSV)</button></div>
     </div>
   </div>
@@ -65,7 +65,7 @@
     <div id="startCard">
       <h2>Coarse-to-fine object arrangement</h2>
       <p>Both interaction techniques are available from the beginning. Lasso-select any number of cubes and move them as a group, or use hand ray + pinch to move one cube and release it on the matching color target.</p>
-      <p>Designed for Meta Quest 3S browser WebXR with hand tracking enabled. Actual behavior depends on browser/device support; controller ray remains available as a fallback.</p>
+      <p>Compact workspace, with the cubes starting in front of the user. For Quest 3S: use the LEFT index finger (other fingers curled) to draw a closed lasso; curl the index to finish. Use the RIGHT hand to point at a cube and pinch thumb + index to grab and move it. Controller ray remains a fallback.</p>
       <button id="begin">Start demo</button>
     </div>
   </div>
@@ -73,37 +73,37 @@
   <a-scene background="color:#dfe5e8" renderer="colorManagement:true; physicallyCorrectLights:true" vr-mode-ui="enabled:true" webxr="optionalFeatures:local-floor, bounded-floor, hand-tracking">
     <a-entity light="type:ambient; intensity:0.85"></a-entity>
     <a-entity light="type:directional; intensity:1.1" position="-3 7 4"></a-entity>
-    <a-plane id="floor" rotation="-90 0 0" width="22" height="22" color="#cbd3d8" material="roughness:0.95" position="0 0 0"></a-plane>
-    <a-grid position="0 0.008 0" width="22" height="22" cell-size="0.5" color="#aeb9c0"></a-grid>
+    <a-plane id="floor" rotation="-90 0 0" width="12" height="12" color="#cbd3d8" material="roughness:0.95" position="0 0 0"></a-plane>
+    <a-grid position="0 0.008 0" width="12" height="12" cell-size="0.5" color="#aeb9c0"></a-grid>
 
     <!-- Group staging area, physically between start and final board -->
-    <a-box position="0 0.035 -2.6" width="3.8" height="0.06" depth="2.4" color="#d5dadd" material="roughness:0.9"></a-box>
-    <a-box position="0 0.071 -2.6" width="3.65" height="0.012" depth="2.25" color="#71858b"></a-box>
-    <a-text value="GROUP AREA" position="0 0.09 -3.55" rotation="-90 0 0" align="center" color="#34464d" width="3"></a-text>
+    <a-box position="0 0.035 -2.25" width="3.2" height="0.06" depth="1.8" color="#d5dadd" material="roughness:0.9"></a-box>
+    <a-box position="0 0.071 -2.25" width="3.05" height="0.012" depth="1.65" color="#71858b"></a-box>
+    <a-text value="GROUP AREA" position="0 0.09 -2.95" rotation="-90 0 0" align="center" color="#34464d" width="3"></a-text>
 
     <!-- Final target board and four clearly color-coded target slots -->
-    <a-box position="0 0.08 -5.25" width="4.0" height="0.16" depth="1.8" color="#edf0f1" material="roughness:0.85"></a-box>
-    <a-text value="FINAL TARGETS" position="0 0.18 -5.9" rotation="-90 0 0" align="center" color="#34464d" width="3.8"></a-text>
-    <a-cylinder class="target-slot" data-target="red" position="-1.35 0.18 -4.9" radius="0.36" height="0.035" color="#d86b5d"></a-cylinder>
-    <a-cylinder class="target-slot" data-target="blue" position="-0.45 0.18 -4.9" radius="0.36" height="0.035" color="#5d88c9"></a-cylinder>
-    <a-cylinder class="target-slot" data-target="yellow" position="0.45 0.18 -4.9" radius="0.36" height="0.035" color="#d5b84f"></a-cylinder>
-    <a-cylinder class="target-slot" data-target="green" position="1.35 0.18 -4.9" radius="0.36" height="0.035" color="#58a982"></a-cylinder>
-    <a-text value="RED" position="-1.35 0.22 -4.9" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
-    <a-text value="BLUE" position="-0.45 0.22 -4.9" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
-    <a-text value="YELLOW" position="0.45 0.22 -4.9" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
-    <a-text value="GREEN" position="1.35 0.22 -4.9" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
+    <a-box position="0 0.08 -4.25" width="3.5" height="0.16" depth="1.45" color="#edf0f1" material="roughness:0.85"></a-box>
+    <a-text value="FINAL TARGETS" position="0 0.18 -4.75" rotation="-90 0 0" align="center" color="#34464d" width="3.8"></a-text>
+    <a-cylinder class="target-slot" data-target="red" position="-1.08 0.18 -3.95" radius="0.29" height="0.035" color="#d86b5d"></a-cylinder>
+    <a-cylinder class="target-slot" data-target="blue" position="-0.36 0.18 -3.95" radius="0.29" height="0.035" color="#5d88c9"></a-cylinder>
+    <a-cylinder class="target-slot" data-target="yellow" position="0.36 0.18 -3.95" radius="0.29" height="0.035" color="#d5b84f"></a-cylinder>
+    <a-cylinder class="target-slot" data-target="green" position="1.08 0.18 -3.95" radius="0.29" height="0.035" color="#58a982"></a-cylinder>
+    <a-text value="RED" position="-1.08 0.22 -3.95" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
+    <a-text value="BLUE" position="-0.36 0.22 -3.95" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
+    <a-text value="YELLOW" position="0.36 0.22 -3.95" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
+    <a-text value="GREEN" position="1.08 0.22 -3.95" rotation="-90 0 0" align="center" color="#fff" width="0.8"></a-text>
 
-    <!-- Start area is deliberately far away from the target board -->
-    <a-box position="0 0.035 1.2" width="4.6" height="0.06" depth="2.2" color="#d5dadd" material="roughness:0.9"></a-box>
-    <a-text value="START AREA" position="0 0.09 0.35" rotation="-90 0 0" align="center" color="#34464d" width="3"></a-text>
-    <a-box class="cube" data-cube="red" data-color="red" position="-1.45 0.55 0.85" width="0.55" height="0.55" depth="0.55" color="#d86b5d"></a-box>
-    <a-box class="cube" data-cube="blue" data-color="blue" position="-0.5 0.55 1.45" width="0.55" height="0.55" depth="0.55" color="#5d88c9"></a-box>
-    <a-box class="cube" data-cube="yellow" data-color="yellow" position="0.5 0.55 0.85" width="0.55" height="0.55" depth="0.55" color="#d5b84f"></a-box>
-    <a-box class="cube" data-cube="green" data-color="green" position="1.45 0.55 1.45" width="0.55" height="0.55" depth="0.55" color="#58a982"></a-box>
-    <a-text value="Move group forward, then align each color" position="0 2.15 -2.3" align="center" color="#36414a" width="5"></a-text>
+    <!-- Start area is in front of the user, with a compact reachable workspace -->
+    <a-box position="0 0.035 -0.85" width="3.8" height="0.06" depth="1.7" color="#d5dadd" material="roughness:0.9"></a-box>
+    <a-text value="START AREA" position="0 0.09 -0.2" rotation="-90 0 0" align="center" color="#34464d" width="3"></a-text>
+    <a-box class="cube" data-cube="red" data-color="red" position="-1.1 0.48 -0.75" width="0.45" height="0.45" depth="0.45" color="#d86b5d"></a-box>
+    <a-box class="cube" data-cube="blue" data-color="blue" position="-0.38 0.48 -1.25" width="0.45" height="0.45" depth="0.45" color="#5d88c9"></a-box>
+    <a-box class="cube" data-cube="yellow" data-color="yellow" position="0.38 0.48 -0.75" width="0.45" height="0.45" depth="0.45" color="#d5b84f"></a-box>
+    <a-box class="cube" data-cube="green" data-color="green" position="1.1 0.48 -1.25" width="0.45" height="0.45" depth="0.45" color="#58a982"></a-box>
+    <a-text value="Move group forward, then align each color" position="0 1.9 -2.0" align="center" color="#36414a" width="4.2"></a-text>
 
     <a-entity id="rig">
-      <a-camera id="camera" position="0 1.6 6.8" wasd-controls-enabled="true">
+      <a-camera id="camera" position="0 1.6 3.6" wasd-controls-enabled="true">
         <a-cursor id="cursor" fuse="false" raycaster="objects:.cube, .target-slot, #floor; far:24" material="color:#ffffff; shader:flat" scale="0.65 0.65 0.65"></a-cursor>
       </a-camera>
       <a-entity id="rightController" laser-controls="hand:right" raycaster="objects:.cube, .target-slot, #floor; far:24" line="color:#52636f; opacity:0.85"></a-entity>
@@ -119,7 +119,7 @@
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
   const scene=$('a-scene'), camera=$('#camera'), floor=$('#floor'), cubes=$$('.cube'), selected=new Set(), history=[];
   const initial=new Map(cubes.map(c=>{const p=c.getAttribute('position');return[c,{x:p.x,y:p.y,z:p.z}]}));
-  const targets={red:{x:-1.35,y:0.48,z:-4.9},blue:{x:-0.45,y:0.48,z:-4.9},yellow:{x:0.45,y:0.48,z:-4.9},green:{x:1.35,y:0.48,z:-4.9}};
+  const targets={red:{x:-1.08,y:0.48,z:-3.95},blue:{x:-0.36,y:0.48,z:-3.95},yellow:{x:0.36,y:0.48,z:-3.95},green:{x:1.08,y:0.48,z:-3.95}};
   let taskStarted=false, taskStart=0, timer=null, moves=0, lassoStart=null, lassoBox=null, groupGrab=null, handGrab=null, xrLoopStarted=false;
   const logs=[['timestamp','event','stage','technique','cubes','x','y','z','target_error','elapsed_seconds']];
   const placed=new Set();
@@ -133,7 +133,7 @@
   function status(t){$('#status').textContent=t;}
   function updateUI(){
     $('#progressText').textContent='Both interactions available';
-    $('#taskInstruction').textContent='Lasso multiple cubes to move them together, or use hand ray + pinch to move one cube and release it on its matching target.';
+    $('#taskInstruction').textContent='Lasso multiple cubes to move them together, or the hand ray appears automatically; pinch to grab one cube, move it, and release near its matching target for magnetic snap alignment.';
     $('#placedStat').textContent=`${placed.size}/4`;
   }
   function select(c, additive=false){
@@ -147,7 +147,7 @@
     const items=[...selected], center=items.reduce((a,c)=>({x:a.x+c.object3D.position.x/items.length,z:a.z+c.object3D.position.z/items.length}),{x:0,z:0});
     let dx=point.x-center.x,dz=point.z-center.z;
     // Keep the whole group inside the intended coarse area, while preserving offsets.
-    dx=Math.max(-2.4,Math.min(2.4,dx)); dz=Math.max(-4.3,Math.min(-1.0,dz));
+    dx=Math.max(-1.9,Math.min(1.9,dx)); dz=Math.max(-3.6,Math.min(-0.6,dz));
     items.forEach(c=>{const p=c.object3D.position;history.push({c,pos:{x:p.x,y:p.y,z:p.z}});const x=p.x+dx,z=p.z+dz;c.setAttribute('position',{x,y:0.55,z});visual(c,false);log('group_move',[c],{x,y:0.55,z});});
     clear();moves++;$('#moveStat').textContent=moves;updateUI();
     status('Group moved. Both lasso and ray + pinch remain available.');
@@ -199,72 +199,153 @@
       status(selected.size?`Lasso selected ${selected.size} cubes. Drag the selection to move the group, or continue with ray + pinch.`:'No cubes enclosed. Try again.');log('lasso_select',[...selected]);
     });
   });
-  // Native WebXR hand input: use the hand input source's targetRaySpace for pointing,
-  // WebXR selectstart/selectend for pinch/grab, and XRHand joints for lasso drawing.
-  // This avoids relying on a nonexistent raycaster attached to hand-tracking-controls.
-  const xrState = { points: [], drawing: false, lassoStart: null, lassoOverlay: null, lastTip: null, lastFrame: null, selectedAtLasso: [], groupOrigin: null, currentFrame: null };
-  const jointNames = ['index-finger-tip', 'thumb-tip'];
-  function isHandSource(source){ return !!(source && source.hand && source.targetRaySpace); }
-  function getRayHit(frame, source, referenceSpace){
-    const pose=frame.getPose(source.targetRaySpace, referenceSpace); if(!pose) return null;
-    const m=pose.transform.matrix, origin=new THREE.Vector3(m[12],m[13],m[14]);
-    const rot=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().fromArray(m));
-    const direction=new THREE.Vector3(0,0,-1).applyQuaternion(rot).normalize();
-    const raycaster=new THREE.Raycaster(origin,direction,0,20);
-    const objs=[...cubes,...$$('.target-slot'),floor].map(el=>el.object3D);
-    const hits=raycaster.intersectObjects(objs,true);
-    for(const h of hits){let node=h.object;while(node&&!node.el)node=node.parent;const el=node&&node.el;if(el&&(el.classList.contains('cube')||el.classList.contains('target-slot')||el===floor))return {el,point:h.point,origin,direction};}
-    return {el:null,point:null,origin,direction};
+  // Quest WebXR hand input. either hand: index extended + other fingers curled draws a lasso.
+  // RIGHT hand: index-finger direction is the ray; thumb-index pinch grabs, moves, and releases.
+  const xrState = { points: [], drawing: false, lastScreen: null, line: null, linePoints: [], currentFrame: null, pinching: new Map() };
+  const joint = (hand, name) => hand && hand.get(name);
+  function jointPos(frame, hand, name, ref){
+    const j=joint(hand,name); if(!j)return null;
+    const p=frame.getJointPose(j,ref); if(!p)return null;
+    return new THREE.Vector3(p.transform.position.x,p.transform.position.y,p.transform.position.z);
   }
-  function onHandSelectStart(frame, source, ref){
-    const hit=getRayHit(frame,source,ref); if(!hit||!hit.el)return;
+  function handRayHit(frame, source, ref){
+    let origin=null, direction=null, tip=null;
+    // Prefer WebXR's targetRaySpace for the hand input source. This does not require
+    // the user to deliberately extend the index finger.
+    try{
+      if(source.targetRaySpace){
+        const pose=frame.getPose(source.targetRaySpace,ref);
+        if(pose){
+          const m=new THREE.Matrix4().fromArray(pose.transform.matrix);
+          const q=new THREE.Quaternion().setFromRotationMatrix(m);
+          origin=new THREE.Vector3().setFromMatrixPosition(m);
+          direction=new THREE.Vector3(0,0,-1).applyQuaternion(q).normalize();
+        }
+      }
+    }catch(e){}
+    tip=jointPos(frame,source.hand,'index-finger-tip',ref);
+    if(!origin && tip){
+      const wrist=jointPos(frame,source.hand,'wrist',ref);
+      const indexBase=jointPos(frame,source.hand,'index-finger-metacarpal',ref)||jointPos(frame,source.hand,'index-finger-phalanx-proximal',ref);
+      if(indexBase){origin=indexBase.clone();direction=tip.clone().sub(indexBase).normalize();}
+      else if(wrist){origin=wrist.clone();direction=tip.clone().sub(wrist).normalize();}
+    }
+    if(!origin||!direction)return null;
+    const raycaster=new THREE.Raycaster(origin,direction,0,10);
+    const objs=[...cubes,...$$('.target-slot')].map(el=>el.object3D);
+    const hits=raycaster.intersectObjects(objs,true);
+    for(const h of hits){
+      let node=h.object;while(node&&!node.el)node=node.parent;
+      const el=node&&node.el;
+      if(el&&(el.classList.contains('cube')||el.classList.contains('target-slot')))return {el,point:h.point,tip:tip||origin,direction,origin};
+    }
+    return {el:null,point:null,tip:tip||origin,direction,origin};
+  }
+  function maybeSnap(c){
+    const t=targets[c.dataset.color],p=c.object3D.position;
+    const dist=Math.sqrt((p.x-t.x)**2+(p.y-t.y)**2+(p.z-t.z)**2);
+    const snapRadius=0.48;
+    if(dist<=snapRadius){
+      c.object3D.position.set(t.x,t.y,t.z);
+      c.setAttribute('animation__snap','property: scale; from: 1.18 1.18 1.18; to: 1 1 1; dur: 220; easing: easeOutQuad');
+      c.setAttribute('material','emissive','#ffffff');
+      status(`Snap! ${c.dataset.color} cube aligned.`);
+      return true;
+    }
+    return false;
+  }
+  function startPinch(frame,source,ref){
+    const tip=jointPos(frame,source.hand,'index-finger-tip',ref);
+    // Priority 1: if a lasso selected multiple cubes, pinch anywhere in space to move the whole group.
+    // The hand ray does not need to hit one of the selected cubes.
+    if(selected.size>1 && tip){
+      groupGrab={source,ref,lastPoint:tip.clone(),items:[...selected].map(cube=>({cube,offset:cube.object3D.position.clone().sub(tip)}))};
+      status(`Moving group of ${selected.size} cubes. Keep pinching and move your hand; release to finish.`);
+      log('group_grab',[...selected],tip);
+      return;
+    }
+    // Priority 2: with zero/one selected cube, use the automatic hand ray to pick an individual cube.
+    const hit=handRayHit(frame,source,ref);
+    if(!hit||!hit.el){status('Pinch detected, but the hand ray is not over a cube. Point your hand toward a cube and pinch.');return;}
     if(hit.el.classList.contains('cube')){
-      const c=hit.el; clear(); selected.add(c); visual(c,true);
-      handGrab={source,cube:c,offset:c.object3D.position.clone().sub(hit.point),ref,group:false};
-      status(`Pinch grabbed ${c.dataset.color} cube. Move your hand; release to drop.`);log('pinch_grab',[c]);
+      const c=hit.el;
+      clear();selected.add(c);visual(c,true);
+      const anchor=hit.point||hit.tip||hit.origin||tip;
+      handGrab={source,cube:c,offset:c.object3D.position.clone().sub(anchor),ref,anchorMode:hit.point?'hit':'tip'};
+      status(`Moving ${c.dataset.color} cube. Keep pinching; release near its matching target to align.`);
+      log('pinch_grab',[c]);
     } else if(hit.el.classList.contains('target-slot')){
-      if(selected.size===1) placeOne([...selected][0],hit.el.dataset.target);
-    } else if(hit.el===floor && selected.size>1){
-      groupGrab={source,ref,items:[...selected],lastPoint:hit.point.clone()};
+      const c=[...selected][0];
+      if(c && c.dataset.color===hit.el.dataset.target)placeOne(c,hit.el.dataset.target);
+      else status('Pinch a cube to pick it up, then release near its matching target.');
     }
   }
-  function onHandSelectEnd(source){
+  function endPinch(source){
     if(handGrab&&handGrab.source===source){
-      const c=handGrab.cube; const p=c.object3D.position;
-      // If released close to the matching target, snap to the exact target location.
-      const t=targets[c.dataset.color], dist=Math.hypot(p.x-t.x,p.z-t.z);
-      if(dist<0.65) placeOne(c,c.dataset.color); else { visual(c,false); selected.delete(c); status(`${c.dataset.color} cube released. Use lasso or pinch again whenever needed.`); log('pinch_release',[c]); }
+      const c=handGrab.cube,p=c.object3D.position,t=targets[c.dataset.color];
+      const dist=Math.sqrt((p.x-t.x)**2+(p.y-t.y)**2+(p.z-t.z)**2);
+      if(dist<=0.48){p.set(t.x,t.y,t.z);placeOne(c,c.dataset.color);}
+      else{visual(c,false);selected.delete(c);status(`${c.dataset.color} cube released. Move it closer to its matching target for magnetic alignment.`);log('pinch_release',[c],p,dist.toFixed(3));}
       handGrab=null;
     }
-    if(groupGrab&&groupGrab.source===source){groupGrab=null;clear();status('Group released. Both interaction techniques remain available.');}
+    if(groupGrab&&groupGrab.source===source){const items=groupGrab.items.map(x=>x.cube);groupGrab=null;status(`Group released. ${items.length} cubes moved together; relative positions preserved.`);log('group_release',items);}
   }
-  function projectPoint(point, cam, rect){const v=point.clone().project(cam);return {x:rect.left+(v.x+1)*.5*rect.width,y:rect.top+(1-v.y)*.5*rect.height,z:v.z};}
-  function pointInPolygon(pt, poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a.y>pt.y)!==(b.y>pt.y))&&(pt.x<(b.x-a.x)*(pt.y-a.y)/(b.y-a.y+1e-8)+a.x))inside=!inside;}return inside;}
+  function projectPoint(point,cam,rect){const v=point.clone().project(cam);return {x:rect.left+(v.x+1)*.5*rect.width,y:rect.top+(1-v.y)*.5*rect.height,z:v.z};}
+  function pointInPolygon(pt,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a.y>pt.y)!==(b.y>pt.y))&&(pt.x<(b.x-a.x)*(pt.y-a.y)/(b.y-a.y+1e-8)+a.x))inside=!inside;}return inside;}
+  function removeLassoLine(){if(xrState.line){scene.object3D.remove(xrState.line);xrState.line.geometry.dispose();xrState.line.material.dispose();xrState.line=null;}xrState.linePoints=[];}
+  function updateLassoLine(pos){xrState.linePoints.push(pos.clone());if(xrState.linePoints.length>300)xrState.linePoints.shift();if(xrState.line)scene.object3D.remove(xrState.line);const geom=new THREE.BufferGeometry().setFromPoints(xrState.linePoints);const mat=new THREE.LineBasicMaterial({color:0x167d88,linewidth:2});xrState.line=new THREE.Line(geom,mat);scene.object3D.add(xrState.line);}
   function closeLasso(points){
-    if(points.length<12)return;
-    const first=points[0],last=points[points.length-1];if(Math.hypot(first.x-last.x,first.y-last.y)>55)return;
-    const poly=points.map(p=>({x:p.x,y:p.y}));const rect=scene.canvas.getBoundingClientRect(),cam=camera.getObject3D('camera');if(!cam)return;
+    removeLassoLine();
+    if(points.length<12){status('Lasso not detected: draw a larger closed loop with either index finger.');return;}
+    const first=points[0],last=points[points.length-1];if(Math.hypot(first.x-last.x,first.y-last.y)>70){status('Lasso not closed. Return near the starting point, then close your drawing gesture to finish.');return;}
+    const poly=points.map(p=>({x:p.x,y:p.y})),rect=scene.canvas.getBoundingClientRect(),cam=camera.getObject3D('camera');if(!cam)return;
     clear();cubes.forEach(c=>{const w=c.object3D.getWorldPosition(new THREE.Vector3()),q=projectPoint(w,cam,rect);if(q.z>-1&&pointInPolygon(q,poly)){selected.add(c);visual(c,true);}});
-    status(selected.size?`Lasso selected ${selected.size} cube(s). Pinch one cube or use a hand movement to move the group.`:'Lasso closed but no cube centers were inside. Try again.');log('xr_lasso_select',[...selected]);
+    status(selected.size?`Lasso selected ${selected.size} cube(s). Move either hand to draw another lasso, or use ray + pinch with either hand for an individual cube.`:'Lasso closed but no cube centers were inside. Try again.');log('xr_lasso_select',[...selected]);
+  }
+  function isIndexOnlyGesture(frame,hand,ref){
+    const wrist=jointPos(frame,hand,'wrist',ref),index=jointPos(frame,hand,'index-finger-tip',ref);
+    const middle=jointPos(frame,hand,'middle-finger-tip',ref),ring=jointPos(frame,hand,'ring-finger-tip',ref),little=jointPos(frame,hand,'pinky-finger-tip',ref)||jointPos(frame,hand,'little-finger-tip',ref);
+    if(!wrist||!index||!middle||!ring||!little)return false;
+    const id=index.distanceTo(wrist),other=(middle.distanceTo(wrist)+ring.distanceTo(wrist)+little.distanceTo(wrist))/3;
+    return id>other+0.045;
   }
   function startXRLoop(session){
-    if(xrLoopStarted)return;xrLoopStarted=true;
     const tick=(time,frame)=>{
-      if(!session||!session.inputSources){xrLoopStarted=false;return;}
+      if(!session||!session.inputSources){return;}
       const ref=scene.renderer.xr.getReferenceSpace();
-      if(frame&&ref){
-        xrState.currentFrame=frame;
-        for(const source of session.inputSources){if(!isHandSource(source))continue;
-          const tip=frame.getJointPose(source.hand.get('index-finger-tip'),ref);const thumb=frame.getJointPose(source.hand.get('thumb-tip'),ref);
-          if(tip){const pos=new THREE.Vector3(tip.transform.position.x,tip.transform.position.y,tip.transform.position.z);
-            if(handGrab&&handGrab.source===source){const p=pos.clone().add(handGrab.offset);handGrab.cube.object3D.position.copy(p);handGrab.cube.object3D.position.y=Math.max(.25,p.y);}
-            if(groupGrab&&groupGrab.source===source&&groupGrab.lastPoint){const delta=pos.clone().sub(groupGrab.lastPoint);groupGrab.items.forEach(c=>c.object3D.position.add(delta));groupGrab.lastPoint.copy(pos);}
-            // Index-finger tip traces a projected closed loop when no object is being pinched.
-            const pinchDist=thumb?Math.hypot(tip.transform.position.x-thumb.transform.position.x,tip.transform.position.y-thumb.transform.position.y,tip.transform.position.z-thumb.transform.position.z):1;
-            if(!handGrab&&!groupGrab&&pinchDist>.045){
-              const rect=scene.canvas.getBoundingClientRect(),cam=camera.getObject3D('camera'),q=projectPoint(pos,cam,rect);
-              if(!xrState.drawing){xrState.drawing=true;xrState.points=[];}
-              if(!xrState.lastScreen||Math.hypot(q.x-xrState.lastScreen.x,q.y-xrState.lastScreen.y)>5)xrState.points.push(q);
+      if(frame&&ref){xrState.currentFrame=frame;
+        for(const source of session.inputSources){if(!source.hand)continue;
+          const tip=jointPos(frame,source.hand,'index-finger-tip',ref),thumb=jointPos(frame,source.hand,'thumb-tip',ref);
+          if(!tip||!thumb)continue;
+          const pinchDist=tip.distanceTo(thumb),wasPinching=xrState.pinching.get(source)||false;
+          if(true){
+            if(pinchDist<0.028&&!wasPinching){xrState.pinching.set(source,true);startPinch(frame,source,ref);}
+            else if(pinchDist>0.045&&wasPinching){xrState.pinching.set(source,false);endPinch(source);}
+            if(handGrab&&handGrab.source===source){
+              const rayNow=handRayHit(frame,source,ref);
+              const anchor=rayNow&&(rayNow.tip||rayNow.origin)||tip;
+              const p=anchor.clone().add(handGrab.offset);
+              handGrab.cube.object3D.position.copy(p);
+              handGrab.cube.object3D.position.y=Math.max(.25,p.y);
+              const t=targets[handGrab.cube.dataset.color],dist=Math.sqrt((p.x-t.x)**2+(p.y-t.y)**2+(p.z-t.z)**2);
+              if(dist<0.48){handGrab.cube.setAttribute('material','emissive','#ffffff');status(`Aligned! ${handGrab.cube.dataset.color} target is within snap range.`);}
+              else visual(handGrab.cube,true);
+            }
+            if(groupGrab&&groupGrab.source===source){
+              const delta=tip.clone().sub(groupGrab.lastPoint);
+              for(const item of groupGrab.items){
+                const p=item.cube.object3D.position;
+                item.cube.object3D.position.set(p.x+delta.x,Math.max(.25,p.y+delta.y),p.z+delta.z);
+              }
+              groupGrab.lastPoint.copy(tip);
+            }
+          }
+          if(true){
+            const drawing=isIndexOnlyGesture(frame,source.hand,ref);
+            if(drawing){
+              const rect=scene.canvas.getBoundingClientRect(),cam=camera.getObject3D('camera'),q=projectPoint(tip,cam,rect);
+              if(!xrState.drawing){xrState.drawing=true;xrState.points=[];removeLassoLine();}
+              if(!xrState.lastScreen||Math.hypot(q.x-xrState.lastScreen.x,q.y-xrState.lastScreen.y)>4){xrState.points.push(q);updateLassoLine(tip);}
               xrState.lastScreen=q;
             } else if(xrState.drawing){closeLasso(xrState.points);xrState.drawing=false;xrState.points=[];xrState.lastScreen=null;}
           }
@@ -274,11 +355,11 @@
     };
     session.requestAnimationFrame(tick);
   }
-  scene.addEventListener('enter-vr',()=>{const session=scene.renderer&&scene.renderer.xr&&scene.renderer.xr.getSession();if(!session)return;startXRLoop(session);
-    session.addEventListener('selectstart',e=>{if(isHandSource(e.inputSource)){const ref=scene.renderer.xr.getReferenceSpace();const frame=xrState.currentFrame;if(frame)onHandSelectStart(frame,e.inputSource,ref);}});
-    session.addEventListener('selectend',e=>{if(isHandSource(e.inputSource))onHandSelectEnd(e.inputSource);});
+  scene.addEventListener('enter-vr',()=>{
+    const session=scene.renderer&&scene.renderer.xr&&scene.renderer.xr.getSession();if(!session)return;
+    startXRLoop(session);
   });
-  // Desktop: lasso selection is always available; controller ray remains the VR fallback.
+  // Desktop fallback: rectangle lasso + click/drag-style ray interactions.
   let desktopDrag=null;
   scene.addEventListener('loaded',()=>{
     const canvas=scene.canvas;if(!canvas)return;
